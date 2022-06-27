@@ -1,23 +1,56 @@
-import classes.Bug as Bug
-from classes.Bug import Bugs_List
-from classes.Users import User, Admin, Users_List
+from classes.Bug import Bug
+from classes.Users import User, Admin
 from classes.Validation import Validation as Val
+from classes.Data import Data
 
 # Main class to control de system connecting all others classes
 
 
 class System:
-    aBugs = {}
-    aUsers = {}
+    Bugs_List = []
+    Users_List = []
+    data = Data()
     id_user_global = 0
 
     def __init__(self):
-        self.admin = Admin("admin", "password", "admin@admin", "0000000000", self.id_user_global)
-        self.bugSample = Bug.Bug("sampleBug", "sampleProject", "minor", "0", "unresolved", "admin", "12/12/1212")
+        self.Users_List.append(Admin("admin", "password", "admin@admin", "0000000000", self.id_user_global))
+        self.Bugs_List.append(Bug("sampleBug", "sampleProject", "minor", "0", "unresolved", "admin", "12/12/1212"))
         self.id_user_global += 1
 
-    @classmethod
-    def start(cls):
+    def save_data(self):
+        self.data.check_database()
+        for bug in self.Bugs_List:
+            sql = "INSERT INTO Bugs VALUES ({}, {}, {}, {}, {}, {}, {})".format(bug.get_title(), bug.get_project(),
+                                                                                bug.get_btype(), bug.get_priority(),
+                                                                                bug.get_status(), bug.get_author(),
+                                                                                bug.get_date())
+            self.data.send_query(sql)
+        for user in self.Users_List:
+            sql = "INSERT INTO Users VALUES ({}, {}, {}, {}, {}, {})".format(user.get_name(), user.get_password(),
+                                                                             user.get_email(), user.get_phone(),
+                                                                             user.get_id_user(), user.get_admin())
+            self.data.send_query(sql)
+
+    def retrieve_data(self):
+        self.data.check_database()
+        sql_bugs = "SELECT * FROM Bugs"
+        bugs_table = self.data.send_query(sql_bugs)
+        sql_users = "SELECT * FROM Users"
+        users_table = self.data.send_query(sql_users)
+        if len(bugs_table) > 0:
+            for bug in bugs_table:
+                self.Bugs_List.append(Bug(bug['title'], bug['project'], bug['btype'], bug['priority'], bug['status'],
+                                          bug['author'], bug['_date_']))
+        if len(users_table) > 0:
+            for user in users_table:
+                if user['admin']:
+                    self.Bugs_List.append(Admin(user['name'], user['password'], user['email'], user['phone'],
+                                                user['id_user']))
+                else:
+                    self.Bugs_List.append(User(user['name'], user['password'], user['email'], user['phone'],
+                                               user['id_user']))
+
+    def start(self):
         print("---------------------HOME---------------------")
         while 1:
             try:
@@ -25,18 +58,18 @@ class System:
             except ValueError:
                 condition = 0
             if condition == 1:
-                System.login()
+                System.login(self)
             elif condition == 2:
-                System.register()
+                System.register(self)
             elif condition == 3:
                 # exit
                 print("Goodbye, have a nice day!\n")
+                self.data.close_connect()
                 break
             else:
                 print("Invalid!!! Choose from the given options.\n")
 
-    @classmethod
-    def add_bug(cls, user):
+    def add_bug(self, user):
         print("--------------Adding new bug to track---------------")
         title = ""
         flag = True
@@ -92,10 +125,9 @@ class System:
             else:
                 print("\nInvalid date\n")
         print(user.get_name())
-        return Bug.Bug(title, project, btype, priority, status, user.get_name(), date)
+        return self.Bugs_List.append(Bug(title, project, btype, priority, status, user.get_name(), date))
 
-    @classmethod
-    def search_bugs(cls):
+    def search_bugs(self):
         print("---------------------Searching bugs---------------------")
         while 1:
             try:
@@ -105,31 +137,31 @@ class System:
                 condition = 0
             if condition == 1:
                 input_b = str(input("Write the title you want to find : \n"))
-                Bug.Bug.search_by(search=0, title=input_b)
+                Bug.search_by(self.Bugs_List, search=0, title=input_b)
                 break
             elif condition == 2:
                 input_b = str(input("Write the project title you want to search by : \n"))
-                Bug.Bug.search_by(search=1, project=input_b)
+                Bug.search_by(self.Bugs_List, search=1, project=input_b)
                 break
             elif condition == 3:
                 input_b = str(input("Write the bug type you want to search by : \n"))
-                Bug.Bug.search_by(search=2, btype=input_b)
+                Bug.search_by(self.Bugs_List, search=2, btype=input_b)
                 break
             elif condition == 4:
                 input_b = str(input("Write the bug priority you want to search by : \n"))
-                Bug.Bug.search_by(search=3, priority=input_b)
+                Bug.search_by(self.Bugs_List, search=3, priority=input_b)
                 break
             elif condition == 5:
                 input_b = str(input("Write the bug status you want to search by : \n"))
-                Bug.Bug.search_by(search=5, status=input_b)
+                Bug.search_by(self.Bugs_List, search=5, status=input_b)
                 break
             elif condition == 6:
                 input_b = str(input("Write the author you want to search by : \n"))
-                Bug.Bug.show_by(1, input_b)
+                Bug.show_by(self.Bugs_List, 1, input_b)
                 break
             elif condition == 7:
                 input_b = str(input("Write the date you want to search by : \n"))
-                Bug.Bug.search_by(search=4, date=input_b)
+                Bug.search_by(self.Bugs_List, search=4, date=input_b)
                 break
             elif condition == 8:
                 # exit
@@ -138,16 +170,14 @@ class System:
             else:
                 print("Invalid!!! Choose from the given options.\n")
 
-    @classmethod
-    def update_bug_author(cls, new_author, former_author):
+    def update_bug_author(self, new_author, former_author):
         print("--------------Updating bug author---------------")
         print("Author : " + former_author + "\n\n")
-        for count in range(len(Bugs_List)):
-            if Bugs_List[count].author == former_author:
-                Bugs_List[count].set_author(new_author)
+        for count in range(len(self.Bugs_List)):
+            if self.Bugs_List[count].author == former_author:
+                self.Bugs_List[count].set_author(new_author)
 
-    @classmethod
-    def update_user(cls, user):
+    def update_user(self, user):
         print("--------------Updating user information---------------")
         while 1:
             try:
@@ -165,7 +195,7 @@ class System:
                         flag = False
                     else:
                         print("\nInvalid name\n")
-                System.update_bug_author(name, user.get_name())
+                System.update_bug_author(self, name, user.get_name())
                 user.set_name(name)
             elif condition == 2:
                 print("\n---------updating user information----------\n")
@@ -207,8 +237,7 @@ class System:
             else:
                 print("Invalid!!! Choose from the given options.\n")
 
-    @classmethod
-    def user_actions(cls, user):
+    def user_actions(self, user):
         if user.admin:
             while 1:
                 print("\nWelcome user " + user.get_name() + "\n")
@@ -220,38 +249,38 @@ class System:
                 except ValueError:
                     condition = 0
                 if condition == 1:  # add bug
-                    System.add_bug(user)
+                    System.add_bug(self, user)
                 elif condition == 2:  # See all bugs
-                    Bug.Bug.show_by()
+                    Bug.show_by(self.Bugs_List)
                 elif condition == 3:  # See all current user bugs
-                    Bug.Bug.show_by(1, user.name)
+                    Bug.show_by(self.Bugs_List, 1, user.name)
                 elif condition == 4:  # Search a bug
-                    System.search_bugs()
+                    System.search_bugs(self)
                 elif condition == 5:  # Delete one of current user bugs
                     title_bug = str(input("Write the title of the bug you want to erase (Case sensitive): \n"))
-                    Bug.Bug.delete_bug(user.name, title_bug)
+                    Bug.delete_bug(self.Users_List, user.name, title_bug)
                 elif condition == 6:  # See all users
                     print("---------------Seeing all users---------------")
-                    user.print_all()
+                    user.print_all(self.Users_List)
                 elif condition == 7:  # Update a user data
                     print("---------------Updating user---------------")
                     input_n = input("Write user's name to update : \n")
                     input_e = input("Write user's email to update : \n")
-                    index_user = user.search_user(input_e, input_n)
+                    index_user = user.search_user(self.Users_List, input_e, input_n)
                     if len(index_user) == 1:
-                        System.update_user(Users_List[index_user[0]])
+                        System.update_user(self, self.Users_List[index_user[0]])
                     else:
                         print("Update of given user not possible at the moment or does not exist ...")
                 elif condition == 8:  # Remove user
                     print("---------------Removing user---------------")
                     input_n = input("Write user's name to delete : \n")
                     input_e = input("Write user's email to delete : \n")
-                    user.remove_user(input_e, input_n)
+                    user.remove_user(self.Users_List, input_e, input_n)
                 elif condition == 9:  # See current user data
                     print("---------------User " + user.name + " data---------------")
                     user.print_user()
                 elif condition == 10:  # Update current user data
-                    System.update_user(user)
+                    System.update_user(self, user)
                 elif condition == 11:  # Exit
                     print("Log out!!!")
                     break
@@ -267,43 +296,41 @@ class System:
                 except ValueError:
                     condition = 0
                 if condition == 1:  # add bug
-                    System.add_bug(user)
+                    System.add_bug(self, user)
                 elif condition == 2:  # See all bugs
-                    Bug.Bug.show_by()
+                    Bug.show_by(self.Bugs_List)
                 elif condition == 3:  # See all current user bugs
-                    Bug.Bug.show_by(1, user.name)
+                    Bug.show_by(self.Bugs_List, 1, user.name)
                 elif condition == 4:  # Search a bug
-                    System.search_bugs()
+                    System.search_bugs(self)
                 elif condition == 5:  # Delete one of my bugs
                     title_bug = str(input("Write the title of the bug you want to erase (Case sensitive): \n"))
-                    Bug.Bug.delete_bug(user.name, title_bug)
+                    Bug.delete_bug(self.Bugs_List, user.name, title_bug)
                 elif condition == 6:  # See current user data
                     print("---------------User " + user.name + " data---------------")
                     user.print_user()
                 elif condition == 7:  # Update current user data
-                    System.update_user(user)
+                    System.update_user(self, user)
                 elif condition == 8:  # Exit
                     print("Log out!!!")
                     break
                 else:
                     print("Invalid!!! Choose from the given options.")
 
-    @classmethod
-    def login(cls):
+    def login(self):
         while 1:
             print("Login with you username and password:")
             name_user = str(input("Username : "))
             password_user = str(input("Password : "))
-            log, current_user = User.login_for_user(name_user, password_user)
+            log, current_user = User.login_for_user(self.Users_List, name_user, password_user)
             if log:
-                System.user_actions(current_user)
+                System.user_actions(self, current_user)
                 break
             else:
                 print("\nUser not found or invalid password\n")
                 break
         pass
 
-    @classmethod
     def register(self):
         print("---------------------Register---------------------")
         name = ""
@@ -344,4 +371,4 @@ class System:
 
         self.id_user_global += 1
         print("Welcome to Bug Management System!!! \n")
-        return User(name, password, email, phone, self.id_user_global)
+        return self.Users_List.append(User(name, password, email, phone, self.id_user_global))

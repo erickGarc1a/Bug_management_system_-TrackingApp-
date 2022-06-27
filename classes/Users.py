@@ -1,8 +1,4 @@
 
-# Defines an Array that Contains Every Instantiated User Class added
-Users_List = []
-
-
 class User:
     def __init__(self, name, password, email, phone, id_user):
         self.name = name
@@ -11,7 +7,6 @@ class User:
         self.phone = phone
         self.id_user = id_user
         self.admin = False
-        Users_List.append(self)
 
     def get_name(self):
         return self.name
@@ -50,12 +45,12 @@ class User:
               "\n")
 
     @classmethod
-    def login_for_user(cls, name, password):
+    def login_for_user(cls, users_list, name, password):
         count = 0
-        while count < len(Users_List):
-            if Users_List[count].name == name:
-                if Users_List[count].password == password:
-                    return True, Users_List[count]
+        while count < len(users_list):
+            if users_list[count].name == name:
+                if users_list[count].password == password:
+                    return True, users_list[count]
             count += 1
         return False, False
 
@@ -67,19 +62,19 @@ class Admin(User):
         self.admin = True
 
     @classmethod
-    def remove_user(cls, email, name):
+    def remove_user(cls, users_list, email, name):
         count = 0
         index_store = []
-        while count < len(Users_List):
-            if Users_List[count].name == name:
-                if Users_List[count].email == email:
+        while count < len(users_list):
+            if users_list[count].name == name:
+                if users_list[count].email == email:
                     index_store.append(count)
             count += 1
         print("------------------User to be deleted-----------------\n")
         if index_store:
             for index in index_store:
-                Users_List[index].print_user()
-                del(Users_List[index])
+                users_list[index].print_user()
+                del(users_list[index])
                 print("-----------------User deleted-----------------\n")
         else:
             print("Users not found!!!!!!!")
@@ -87,16 +82,16 @@ class Admin(User):
         return True
 
     @classmethod
-    def search_user(cls, email, name):
+    def search_user(cls, users_list, email, name):
         count = 0
         index_store = []
-        for count in range(len(Users_List)):
-            if Users_List[count].name == name:
-                if Users_List[count].email == email:
+        for count in range(len(users_list)):
+            if users_list[count].name == name:
+                if users_list[count].email == email:
                     index_store.append(count)
         return index_store
 
     @classmethod
-    def print_all(cls):
-        for count in range(len(Users_List)):
-            Users_List[count].print_user()
+    def print_all(cls, users_list):
+        for count in range(len(users_list)):
+            users_list[count].print_user()

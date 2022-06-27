@@ -13,8 +13,6 @@ class Validation:
             return False
         pass
 
-    # def check_priority(self, priority):
-
     @classmethod
     def check_name(cls, name):
         # Alphanumeric format
