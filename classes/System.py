@@ -2,72 +2,47 @@ from classes.Bug import Bug
 from classes.Users import User, Admin
 from classes.Validation import Validation as Val
 from classes.Data import Data
-
 # Main class to control de system connecting all others classes
 
 
 class System:
     Bugs_List = []
     Users_List = []
-    data = Data()
-    id_user_global = 0
+    id_user_global = 1
 
     def __init__(self):
-        self.Users_List.append(Admin("admin", "password", "admin@admin", "0000000000", self.id_user_global))
-        self.Bugs_List.append(Bug("sampleBug", "sampleProject", "minor", "0", "unresolved", "admin", "12/12/1212"))
+        self.data = Data()
+        # self.Users_List.append(Admin("admin", "password", "admin@admin", "0000000000", self.id_user_global))
+        # self.Bugs_List.append(Bug("sampleBug", "sampleProject", "minor", "0", "unresolved", "admin", "12/12/1212"))
         self.id_user_global += 1
-
-    def save_data(self):
-        self.data.check_database()
-        for bug in self.Bugs_List:
-            sql = "INSERT INTO Bugs VALUES ({}, {}, {}, {}, {}, {}, {})".format(bug.get_title(), bug.get_project(),
-                                                                                bug.get_btype(), bug.get_priority(),
-                                                                                bug.get_status(), bug.get_author(),
-                                                                                bug.get_date())
-            self.data.send_query(sql)
-        for user in self.Users_List:
-            sql = "INSERT INTO Users VALUES ({}, {}, {}, {}, {}, {})".format(user.get_name(), user.get_password(),
-                                                                             user.get_email(), user.get_phone(),
-                                                                             user.get_id_user(), user.get_admin())
-            self.data.send_query(sql)
-
-    def retrieve_data(self):
-        self.data.check_database()
-        sql_bugs = "SELECT * FROM Bugs"
-        bugs_table = self.data.send_query(sql_bugs)
-        sql_users = "SELECT * FROM Users"
-        users_table = self.data.send_query(sql_users)
-        if len(bugs_table) > 0:
-            for bug in bugs_table:
-                self.Bugs_List.append(Bug(bug['title'], bug['project'], bug['btype'], bug['priority'], bug['status'],
-                                          bug['author'], bug['_date_']))
-        if len(users_table) > 0:
-            for user in users_table:
-                if user['admin']:
-                    self.Bugs_List.append(Admin(user['name'], user['password'], user['email'], user['phone'],
-                                                user['id_user']))
-                else:
-                    self.Bugs_List.append(User(user['name'], user['password'], user['email'], user['phone'],
-                                               user['id_user']))
+        self.num_bugs = 0
+        self.num_users = 0
 
     def start(self):
+        self.Bugs_List, self.num_bugs = Bug.retrieve_data(self.data)
+        self.Users_List, self.num_users = Admin.retrieve_data(self.data)
+        self.id_user_global = self.num_users
         print("---------------------HOME---------------------")
-        while 1:
-            try:
-                condition = int(input("\nChoose an option:  \n 1. login \n 2. register \n 3. exit \n "))
-            except ValueError:
-                condition = 0
-            if condition == 1:
-                System.login(self)
-            elif condition == 2:
-                System.register(self)
-            elif condition == 3:
-                # exit
-                print("Goodbye, have a nice day!\n")
-                self.data.close_connect()
-                break
-            else:
-                print("Invalid!!! Choose from the given options.\n")
+        try:
+            while 1:
+                try:
+                    condition = int(input("\nChoose an option:  \n 1. login \n 2. register \n 3. exit \n "))
+                except ValueError:
+                    condition = 0
+                if condition == 1:
+                    System.login(self)
+                elif condition == 2:
+                    System.register(self)
+                elif condition == 3:
+                    # exit
+                    print("Goodbye, have a nice day!\n")
+                    break
+                else:
+                    print("Invalid!!! Choose from the given options.\n")
+        finally:
+            Bug.save_data(self.data, self.Bugs_List, self.num_bugs)
+            Admin.save_data(self.data, self.Users_List, self.num_users)
+            self.data.close_connect()
 
     def add_bug(self, user):
         print("--------------Adding new bug to track---------------")
@@ -176,6 +151,7 @@ class System:
         for count in range(len(self.Bugs_List)):
             if self.Bugs_List[count].author == former_author:
                 self.Bugs_List[count].set_author(new_author)
+        self.num_bugs = 0
 
     def update_user(self, user):
         print("--------------Updating user information---------------")
@@ -197,6 +173,7 @@ class System:
                         print("\nInvalid name\n")
                 System.update_bug_author(self, name, user.get_name())
                 user.set_name(name)
+                self.num_users = 0
             elif condition == 2:
                 print("\n---------updating user information----------\n")
                 flag = True
@@ -208,6 +185,7 @@ class System:
                     else:
                         print("\nInvalid email\n")
                 user.set_email(email)
+                self.num_users = 0
             elif condition == 3:
                 print("\n---------updating user information----------\n")
                 flag = True
@@ -219,6 +197,7 @@ class System:
                     else:
                         print("\nInvalid phone for user\n")
                 user.set_phone(phone)
+                self.num_users = 0
             elif condition == 4:
                 print("\n---------updating user information----------\n")
                 flag = True
@@ -230,6 +209,7 @@ class System:
                     else:
                         print("\nInvalid password\n")
                 user.set_password(password)
+                self.num_users = 0
             elif condition == 5:
                 # exit
                 print("No update!!!\n")

@@ -1,3 +1,5 @@
+from classes.Data import Data
+
 
 class User:
     def __init__(self, name, password, email, phone, id_user):
@@ -95,3 +97,34 @@ class Admin(User):
     def print_all(cls, users_list):
         for count in range(len(users_list)):
             users_list[count].print_user()
+
+    @classmethod
+    def save_data(cls, data, users_list, num_users):
+        data.check_database()
+        if users_list[num_users:] is not None:
+            for user in users_list[num_users:]:
+                sql = "INSERT INTO Users VALUES ('{}', '{}', '{}', '{}', {}, {})".format(user.get_name(), user.get_password(),
+                                                                                         user.get_email(), user.get_phone(),
+                                                                                         user.get_id_user(), user.get_admin())
+                data.send_query(sql)
+
+    @classmethod
+    def retrieve_data(cls, data):
+        data.check_database()
+        sql_users = "SELECT * FROM Users"
+        Users_List = []
+        num_users = 0
+        try:
+            users_table = data.send_query(sql_users)
+            num_users = len(users_table)
+            if num_users > 0:
+                for user in users_table:
+                    if user['admin']:
+                        Users_List.append(Admin(user['name'], user['password'], user['email'], user['phone'],
+                                                user['id_user']))
+                    else:
+                        Users_List.append(User(user['name'], user['password'], user['email'], user['phone'],
+                                               user['id_user']))
+        except TypeError:
+            print("")
+        return Users_List, num_users

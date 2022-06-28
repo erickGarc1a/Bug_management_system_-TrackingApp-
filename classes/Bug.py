@@ -1,3 +1,5 @@
+from classes.Data import Data
+
 
 class Bug:
     def __init__(self, title, project, btype, priority, status, author, date):
@@ -77,7 +79,7 @@ class Bug:
                 for count in range(len(bugs_list)):
                     if bugs_list[count].title == title:
                         index_store.append(count)
-                Bug.print_by_index(index_store)
+                Bug.print_by_index(bugs_list, index_store)
                 return index_store
             else:
                 print("You did not give a title!")
@@ -88,7 +90,7 @@ class Bug:
                 for count in range(len(bugs_list)):
                     if bugs_list[count].project == project:
                         index_store.append(count)
-                Bug.print_by_index(index_store)
+                Bug.print_by_index(bugs_list, index_store)
                 return index_store
             else:
                 print("You did not give a type!")
@@ -99,7 +101,7 @@ class Bug:
                 for count in range(len(bugs_list)):
                     if bugs_list[count].btype == btype:
                         index_store.append(count)
-                Bug.print_by_index(index_store)
+                Bug.print_by_index(bugs_list, index_store)
                 return index_store
             else:
                 print("You did not give a project title!")
@@ -110,7 +112,7 @@ class Bug:
                 for count in range(len(bugs_list)):
                     if bugs_list[count].priority == priority:
                         index_store.append(count)
-                Bug.print_by_index(index_store)
+                Bug.print_by_index(bugs_list, index_store)
                 return index_store
             else:
                 print("You did not give a priority!")
@@ -121,7 +123,7 @@ class Bug:
                 for count in range(len(bugs_list)):
                     if bugs_list[count].date == date:
                         index_store.append(count)
-                Bug.print_by_index(index_store)
+                Bug.print_by_index(bugs_list, index_store)
                 return index_store
             else:
                 print("You did not give a date!")
@@ -132,7 +134,7 @@ class Bug:
                 for count in range(len(bugs_list)):
                     if bugs_list[count].status == status:
                         index_store.append(count)
-                Bug.print_by_index(index_store)
+                Bug.print_by_index(bugs_list, index_store)
                 return index_store
             else:
                 print("You did not give a status!")
@@ -149,7 +151,7 @@ class Bug:
                     index_store.append(count)
             count += 1
         print("-----------------Bugs to be deleted-----------------\n")
-        Bug.print_by_index(index_store)
+        Bug.print_by_index(bugs_list, index_store)
         if index_store:
             for index in index_store:
                 del(bugs_list[index])
@@ -180,3 +182,31 @@ class Bug:
                 print("You did not give a name!")
         else:
             print("Not showing anything! \n")
+
+    @classmethod
+    def save_data(cls, data, bugs_list, num_bugs):
+        data.check_database()
+        if bugs_list[num_bugs:] is not None:
+            for bug in bugs_list[num_bugs:]:
+                sql = "INSERT INTO Bugs VALUES ('{}', '{}', '{}', {}, '{}', '{}', {})".format(bug.get_title(), bug.get_project(),
+                                                                                              bug.get_btype(), bug.get_priority(),
+                                                                                              bug.get_status(), bug.get_author(),
+                                                                                              bug.get_date())
+                data.send_query(sql)
+
+    @classmethod
+    def retrieve_data(cls, data):
+        data.check_database()
+        sql_bugs = "SELECT * FROM Bugs"
+        Bugs_List = []
+        num_bugs = 0
+        try:
+            bugs_table = data.send_query(sql_bugs)
+            num_bugs = len(bugs_table)
+            if num_bugs > 0:
+                for bug in bugs_table:
+                    Bugs_List.append(Bug(str(bug['title']), str(bug['project']), str(bug['btype']), str(bug['priority']), str(bug['status']),
+                                         str(bug['author']), str(bug['_date_'])))
+        except TypeError as e:
+            print("")
+        return Bugs_List, num_bugs

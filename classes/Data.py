@@ -24,20 +24,21 @@ class Data:
         return self.mydb
 
     def send_query(self, sql):
+        result = {}
         try:
-            my_cursor = self.mydb.cursor(dictionary=True)
+            my_cursor = self.mydb.cursor(dictionary=True, buffered=True)
             try:
                 my_cursor.execute(sql)
-            except Error as e:
-                print("Something went wrong: {}".format(e))
-            finally:
+                self.mydb.commit()
                 result = my_cursor.fetchall()
+            except Error as e:
+                print("Something went wrong 1.1: {}".format(e))
+            finally:
                 my_cursor.close()
-                if len(result) > 0:
-                    return result
-                return None
+                return result
         except Error as e:
-            print("Something went wrong: {}".format(e))
+            print("Something went wrong 1.2: {}".format(e))
+            return result
 
     def check_database(self):
         try:
@@ -61,11 +62,11 @@ class Data:
                     my_cursor.execute("CREATE TABLE Users (name varchar(100) not null, password varchar(100) not null, "
                                       "email varchar(100), phone varchar(10), id_user int primary key, admin boolean)")
             except Error as e:
-                print("Something went wrong: {}".format(e))
+                print("Something went wrong 1: {}".format(e))
             finally:
                 my_cursor.close()
         except Error as e:
-            print("Something went wrong: {}".format(e))
+            print("Something went wrong 2: {}".format(e))
 
     def close_connect(self):
         try:

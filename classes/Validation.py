@@ -6,7 +6,7 @@ class Validation:
     @classmethod
     def check_text(cls, text):
         # Alphanumeric format
-        comm_val = re.compile(r"[A-Za-z\d]+")
+        comm_val = re.compile(r"[A-Za-z\d@#$%^&+=]+")
         if re.match(comm_val, text):
             return True
         else:
@@ -26,7 +26,7 @@ class Validation:
     @classmethod
     def check_password(cls, password):
         # Alphanumeric format
-        comm_val = re.compile(r"[A-Za-z\d]+")
+        comm_val = re.compile(r'[A-Za-z0-9@#$%^&+=]{8,}')
         if re.match(comm_val, password):
             return True
         else:
