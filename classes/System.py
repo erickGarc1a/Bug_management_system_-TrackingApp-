@@ -13,10 +13,12 @@ class System:
     def __init__(self):
         self.data = Data()
         # self.Users_List.append(Admin("admin", "password", "admin@admin", "0000000000", self.id_user_global))
-        # self.Bugs_List.append(Bug("sampleBug", "sampleProject", "minor", "0", "unresolved", "admin", "12/12/1212"))
+        self.Bugs_List.append(Bug("sampleBug", "sampleProject", "minor", "0", "unresolved", "erick", "1212-12-12"))
         self.id_user_global += 1
         self.num_bugs = 0
         self.num_users = 0
+        Bug.save_data(self.data, self.Bugs_List, self.num_bugs)
+        # Admin.save_data(self.data, self.Users_List, self.num_users)
 
     def start(self):
         self.Bugs_List, self.num_bugs = Bug.retrieve_data(self.data)
@@ -94,7 +96,7 @@ class System:
         date = ""
         flag = True
         while flag:
-            date = input("Input date : \n")
+            date = input("Input date (YYYY-MM-DD): \n")
             if Val.check_date(date):
                 flag = False
             else:

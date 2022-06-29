@@ -186,9 +186,12 @@ class Bug:
     @classmethod
     def save_data(cls, data, bugs_list, num_bugs):
         data.check_database()
+        if num_bugs == 0:
+            sql = "TRUNCATE TABLE Bugs;"
+            data.send_query(sql)
         if bugs_list[num_bugs:] is not None:
             for bug in bugs_list[num_bugs:]:
-                sql = "INSERT INTO Bugs VALUES ('{}', '{}', '{}', {}, '{}', '{}', {})".format(bug.get_title(), bug.get_project(),
+                sql = "INSERT INTO Bugs VALUES ('{}', '{}', '{}', {}, '{}', '{}', '{}')".format(bug.get_title(), bug.get_project(),
                                                                                               bug.get_btype(), bug.get_priority(),
                                                                                               bug.get_status(), bug.get_author(),
                                                                                               bug.get_date())

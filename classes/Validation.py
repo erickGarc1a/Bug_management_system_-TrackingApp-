@@ -55,7 +55,7 @@ class Validation:
 
     @classmethod
     def check_date(cls, date):
-        date_val = re.compile('.{2}/.{2}/.{4}')
+        date_val = re.compile('.{4}-.{2}-.{2}')
         if re.match(date_val, date):
             return True
         else:

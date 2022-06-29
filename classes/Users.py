@@ -101,6 +101,9 @@ class Admin(User):
     @classmethod
     def save_data(cls, data, users_list, num_users):
         data.check_database()
+        if num_users == 0:
+            sql = "TRUNCATE TABLE Users;"
+            data.send_query(sql)
         if users_list[num_users:] is not None:
             for user in users_list[num_users:]:
                 sql = "INSERT INTO Users VALUES ('{}', '{}', '{}', '{}', {}, {})".format(user.get_name(), user.get_password(),

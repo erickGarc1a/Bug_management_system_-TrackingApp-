@@ -6,17 +6,17 @@ class Data:
 
     def __init__(self):
         try:
-            self.mydb = mysql.connector.connect(host="localhost", user="root", password="Aspire123")
+            self.mydb = mysql.connector.connect(host="localhost", user="root", password="Death_One21")
             print("Connection success")
-        except mysql.connector.errors.ProgrammingError:
+        except Error:
             print("Connection Error")
             self.mydb = None
 
     def set_connect(self):
         try:
-            self.mydb = mysql.connector.connect(host="localhost", user="root", password="Aspire123")
+            self.mydb = mysql.connector.connect(host="localhost", user="root", password="Death_One21")
             print("Connection success")
-        except mysql.connector.errors.ProgrammingError:
+        except Error:
             print("Connection Error")
             self.mydb = None
 
@@ -32,7 +32,7 @@ class Data:
                 self.mydb.commit()
                 result = my_cursor.fetchall()
             except Error as e:
-                print("Something went wrong 1.1: {}".format(e))
+                print("Something went wrong 1.1: {}".format(e) + "/n command :" + sql)
             finally:
                 my_cursor.close()
                 return result
